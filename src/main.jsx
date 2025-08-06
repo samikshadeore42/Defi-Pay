@@ -3,32 +3,30 @@ import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
 
 import { WagmiProvider, createConfig, http } from "wagmi";
-import { arbitrumSepolia, baseSepolia, avalancheFuji } from "wagmi/chains";
 import { getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
 import "@rainbow-me/rainbowkit/styles.css";
 import "./index.css";
 
-// List the chains you want to support
-const chains = [arbitrumSepolia, baseSepolia, avalancheFuji];
+import { CHAIN_CONFIGS } from "./constants/chain";
+
+const chains = Object.values(CHAIN_CONFIGS).map((c) => c.viemChain);
 const queryClient = new QueryClient();
 
-// Set up default wallet connectors (replace w/ your projectId if available)
 const { connectors } = getDefaultWallets({
   appName: "DeFi-Pay+",
-  projectId: "1a01bf568da38a96f4bd2a5a3cb9568b", // replace for mainnet, or use dummy for test/dev
+  projectId: "1a01bf568da38a96f4bd2a5a3cb9568b",
 });
 
-// Wagmi v2+ config (no publicProvider/configureChains!)
+const transports = {};
+for (const [id, cfg] of Object.entries(CHAIN_CONFIGS)) {
+  transports[cfg.viemChain.id] = http();
+}
+
 const config = createConfig({
   connectors,
   chains,
-  transports: {
-    [arbitrumSepolia.id]: http(),
-    [baseSepolia.id]: http(),
-    [avalancheFuji.id]: http(),
-  },
+  transports,
   ssr: false,
 });
 
@@ -41,4 +39,3 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     </WagmiProvider>
   </QueryClientProvider>
 );
-
